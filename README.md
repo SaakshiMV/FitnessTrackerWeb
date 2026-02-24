@@ -178,5 +178,3 @@ Built using:
 * Flask Framework
 
 ---
-Just tell me 👍
-```
