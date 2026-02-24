@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FitCoach Web App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="container">
+    <h2>🏋️‍♂️ FitCoach Live Tracker</h2>
+
+    <div class="controls">
+        <button onclick="changeExercise('squat')">Squat</button>
+        <button onclick="changeExercise('pushup')">Pushup</button>
+        <button onclick="changeExercise('lunge')">Lunge</button>
+        <button onclick="saveSession()">Save Session</button>
+    </div>
+
+    <div class="video-container">
+        <img src="{{ url_for('video') }}" class="video-frame">
+    </div>
+
+    <h3>Live Reps Chart</h3>
+    <canvas id="liveChart" width="720" height="300"></canvas>
+</div>
+
+<script>
+let liveLabels = [];
+let liveData = [];
+
+const ctx = document.getElementById('liveChart').getContext('2d');
+const liveChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: liveLabels,
+        datasets: [{
+            label: 'Reps',
+            data: liveData,
+            borderColor: 'rgba(56, 189, 248,1)',
+            backgroundColor: 'rgba(56, 189, 248,0.2)',
+            tension: 0.3
+        }]
+    },
+    options: { responsive: true }
+});
+
+function fetchStats() {
+    fetch("/get_live_stats")
+        .then(res => res.json())
+        .then(data => {
+            const now = new Date().toLocaleTimeString();
+            liveLabels.push(now);
+            liveData.push(data.count);
+            if(liveLabels.length > 20){ // keep last 20 points
+                liveLabels.shift();
+                liveData.shift();
+            }
+            liveChart.update();
+        });
+}
+
+// Fetch live stats every 1 second
+setInterval(fetchStats, 1000);
+
+function changeExercise(ex) {
+    fetch("/set_exercise", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({exercise: ex})
+    });
+    liveLabels = [];
+    liveData = [];
+}
+
+function saveSession() {
+    fetch("/save_session", {method: "POST"})
+    alert("Session saved to CSV!")
+}
+</script>
+</body>
+</html>

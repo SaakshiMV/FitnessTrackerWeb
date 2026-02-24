@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FitCoach Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="container">
+    <h2>📊 Session Dashboard</h2>
+
+    <table class="session-table">
+        <tr>
+            <th>Timestamp</th>
+            <th>Exercise</th>
+            <th>Count</th>
+            <th>Feedback</th>
+        </tr>
+        {% for s in sessions %}
+        <tr>
+            <td>{{ s.timestamp }}</td>
+            <td>{{ s.exercise }}</td>
+            <td>{{ s.count }}</td>
+            <td>{{ s.feedback }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Reps Over Time</h3>
+    <canvas id="repsChart" width="700" height="400"></canvas>
+</div>
+
+<script>
+const sessions = {{ sessions|tojson }};
+const labels = sessions.map(s => s.timestamp);
+const data = sessions.map(s => parseInt(s.count));
+
+const ctx = document.getElementById('repsChart').getContext('2d');
+const repsChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Reps Over Time',
+            data: data,
+            borderColor: 'rgba(56, 189, 248,1)',
+            backgroundColor: 'rgba(56, 189, 248,0.2)',
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: true }
+        }
+    }
+});
+</script>
+</body>
+</html>
